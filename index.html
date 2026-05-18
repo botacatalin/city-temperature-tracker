@@ -203,7 +203,12 @@
 
     <section class="card chart-card">
       <div class="chart-title">
-        <strong>Temperature evolution</strong>
+        <div>
+          <strong>Temperature evolution</strong>
+          <div style="font-size:0.82rem;color:#64748b;margin-top:4px;">
+            Explore temperature trends over the last week, month, year, or across the full dataset.
+          </div>
+        </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <select id="rangeFilter" style="min-width:auto;padding:8px 12px;font-size:0.9rem;">
             <option value="week">Week</option>
@@ -225,7 +230,6 @@
             <th>Date UTC</th>
             <th>Location</th>
             <th>Temperature</th>
-            <th>Description</th>
           </tr>
         </thead>
         <tbody id="rows"></tbody>
@@ -270,7 +274,6 @@
         location: String(item.location),
         temperature: Number(item.temperature),
         unit: item.unit || "celsius",
-        description: item.description || ""
       };
     }
 
@@ -334,7 +337,6 @@
           <td>${formatUTC(item.date)}</td>
           <td>${escapeHtml(item.location)}</td>
           <td><span class="temp">${formatTemp(item.temperature)}</span></td>
-          <td>${escapeHtml(item.description || "—")}</td>
         </tr>
       `).join("");
 

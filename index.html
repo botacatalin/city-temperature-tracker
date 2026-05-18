@@ -185,13 +185,15 @@
   <main>
     <header>
       <h1>City Temperature Tracker</h1>
-      <p class="subtitle">UTC temperature history powered by <strong>OpenWeatherMap</strong> and loaded directly from the GitHub-hosted JSON file.</p>
+      <p class="subtitle">UTC temperature history powered by <strong>OpenWeatherMap</strong>.</p>
     </header>
 
     <section id="stats" class="grid"></section>
 
     <section class="card toolbar">
-      <input id="search" type="search" placeholder="Search location..." />
+      <select id="locationFilter" aria-label="Filter by location">
+        <option value="all">All locations</option>
+      </select>
       <select id="sort">
         <option value="date-desc">Newest first</option>
         <option value="date-asc">Oldest first</option>
@@ -236,7 +238,7 @@
       </table>
     </section>
 
-    <footer>Data is fetched from the raw GitHub JSON file when the page loads. The table scrolls automatically when there are many records.</footer>
+    <footer>Data refreshes when the page loads.</footer>
   </main>
 
   <script>
@@ -245,7 +247,7 @@
     const status = document.getElementById("status");
     const table = document.getElementById("table");
     const rows = document.getElementById("rows");
-    const search = document.getElementById("search");
+    const locationFilter = document.getElementById("locationFilter");
     const sort = document.getElementById("sort");
     const chart = document.getElementById("chart");
     const chartHint = document.getElementById("chartHint");
@@ -260,6 +262,7 @@
       })
       .then((json) => {
         data = Array.isArray(json) ? json.map(cleanRecord).filter(Boolean) : [];
+        populateLocationFilter();
         render();
       })
       .catch((err) => {
@@ -277,10 +280,23 @@
       };
     }
 
+    function populateLocationFilter() {
+      const locations = [...new Set(data.map((item) => item.location))].sort((a, b) => a.localeCompare(b));
+
+      locationFilter.innerHTML = `
+        <option value="all">All locations</option>
+        ${locations.map((location) => `<option value="${escapeHtml(location)}">${escapeHtml(location)}</option>`).join("")}
+      `;
+
+      if (locations.includes("Cluj-Napoca")) {
+        locationFilter.value = "Cluj-Napoca";
+      }
+    }
+
     function render() {
-      const q = search.value.trim().toLowerCase();
+      const selectedLocation = locationFilter.value;
       const filtered = data
-        .filter((item) => item.location.toLowerCase().includes(q))
+        .filter((item) => selectedLocation === "all" || item.location === selectedLocation)
         .sort(sortRecords);
 
       const chartData = filterByRange(filtered)
@@ -431,7 +447,7 @@
         .replaceAll("'", "&#039;");
     }
 
-    search.addEventListener("input", render);
+    locationFilter.addEventListener("change", render);
     sort.addEventListener("change", render);
     rangeFilter.addEventListener("change", render);
   </script>

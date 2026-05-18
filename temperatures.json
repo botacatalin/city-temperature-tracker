@@ -1,1 +1,8 @@
-{}
+[
+  {
+    "date": "2026-05-18T06:00:00+03:00",
+    "location": "Cluj-Napoca",
+    "temperature": 12,
+    "unit": "celsius"
+  }
+]

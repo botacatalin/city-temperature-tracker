@@ -3,122 +3,132 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Temperature History</title>
+  <title>City Temperature Tracker</title>
   <style>
     :root {
-      --bg: #f4f7fb;
+      --bg: #f6f8fc;
       --card: #ffffff;
       --text: #172033;
-      --muted: #68758a;
+      --muted: #64748b;
       --accent: #2563eb;
       --accent-soft: #dbeafe;
-      --border: #e5eaf2;
+      --border: #e2e8f0;
       --danger: #dc2626;
-      --shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: linear-gradient(135deg, #eef4ff, #f8fafc);
-      color: var(--text);
       min-height: 100vh;
-      padding: 32px 16px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #eef4ff, var(--bg));
+      color: var(--text);
+      padding: 28px 14px;
     }
 
-    .container {
-      max-width: 980px;
+    main {
+      max-width: 960px;
       margin: 0 auto;
     }
 
     header {
-      margin-bottom: 28px;
       text-align: center;
+      margin-bottom: 22px;
     }
 
     h1 {
       margin: 0 0 8px;
-      font-size: clamp(2rem, 5vw, 3.4rem);
+      font-size: clamp(2rem, 5vw, 3.25rem);
       letter-spacing: -0.04em;
     }
 
     .subtitle {
       margin: 0;
       color: var(--muted);
-      font-size: 1rem;
     }
 
-    .stats {
+    .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px;
-      margin-bottom: 22px;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
     }
 
-    .stat-card,
-    .panel {
-      background: rgba(255, 255, 255, 0.86);
+    .card {
+      background: rgba(255, 255, 255, 0.9);
       border: 1px solid var(--border);
-      border-radius: 22px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
     }
 
-    .stat-card {
-      padding: 20px;
+    .stat {
+      padding: 18px;
     }
 
-    .stat-label {
+    .label {
       color: var(--muted);
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-bottom: 8px;
     }
 
-    .stat-value {
-      font-size: 1.8rem;
+    .value {
+      font-size: 1.7rem;
       font-weight: 800;
     }
 
     .toolbar {
       display: flex;
+      gap: 10px;
       flex-wrap: wrap;
-      gap: 12px;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px;
-      margin-bottom: 18px;
+      padding: 14px;
+      margin-bottom: 16px;
     }
 
-    input,
-    select {
+    input, select {
+      flex: 1;
+      min-width: 190px;
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 12px 14px;
+      padding: 11px 13px;
       font: inherit;
       background: #fff;
       color: var(--text);
-      outline: none;
     }
 
-    input:focus,
-    select:focus {
+    input:focus, select:focus {
+      outline: none;
       border-color: var(--accent);
       box-shadow: 0 0 0 4px var(--accent-soft);
     }
 
-    .search {
-      min-width: 240px;
-      flex: 1;
+    .chart-card {
+      padding: 18px;
+      margin-bottom: 16px;
     }
 
-    .table-wrap {
-      overflow-x: auto;
+    .chart-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    svg {
+      width: 100%;
+      height: 260px;
+      display: block;
+    }
+
+    .table-scroll {
+      max-height: 620px;
+      overflow: auto;
     }
 
     table {
@@ -126,31 +136,28 @@
       border-collapse: collapse;
     }
 
-    th,
-    td {
-      padding: 16px 18px;
+    th, td {
+      padding: 14px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       white-space: nowrap;
     }
 
     th {
+      position: sticky;
+      top: 0;
+      background: #f8fafc;
       color: var(--muted);
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      background: #f8fafc;
+      z-index: 1;
     }
 
-    tr:last-child td {
-      border-bottom: 0;
-    }
-
-    .temp-pill {
+    .temp {
       display: inline-flex;
-      align-items: center;
-      justify-content: center;
       min-width: 74px;
+      justify-content: center;
       padding: 7px 11px;
       border-radius: 999px;
       background: var(--accent-soft);
@@ -164,52 +171,28 @@
       color: var(--muted);
     }
 
-    .error {
-      color: var(--danger);
-    }
+    .error { color: var(--danger); }
 
     footer {
+      margin-top: 18px;
       text-align: center;
       color: var(--muted);
-      font-size: 0.86rem;
-      margin-top: 22px;
-    }
-
-    @media (max-width: 640px) {
-      body {
-        padding: 22px 12px;
-      }
-
-      .toolbar {
-        align-items: stretch;
-      }
-
-      input,
-      select {
-        width: 100%;
-      }
+      font-size: 0.85rem;
     }
   </style>
 </head>
 <body>
-  <main class="container">
+  <main>
     <header>
-      <h1>Temperature History</h1>
-      <p class="subtitle">Live JSON data loaded from <strong>temperatures.json</strong></p>
+      <h1>City Temperature Tracker</h1>
+      <p class="subtitle">UTC temperature history powered by <strong>OpenWeatherMap</strong> data and stored in <strong>temperatures.json</strong>.</p>
     </header>
 
-    <section class="stats" id="stats"></section>
+    <section id="stats" class="grid"></section>
 
-    <section class="panel toolbar">
-      <input
-        id="searchInput"
-        class="search"
-        type="search"
-        placeholder="Search by location..."
-        aria-label="Search by location"
-      />
-
-      <select id="sortSelect" aria-label="Sort temperature records">
+    <section class="card toolbar">
+      <input id="search" type="search" placeholder="Search location..." />
+      <select id="sort">
         <option value="date-desc">Newest first</option>
         <option value="date-asc">Oldest first</option>
         <option value="temp-desc">Highest temperature</option>
@@ -218,171 +201,223 @@
       </select>
     </section>
 
-    <section class="panel table-wrap">
-      <div id="status" class="status">Loading temperature data...</div>
-      <table id="dataTable" hidden>
+    <section class="card chart-card">
+      <div class="chart-title">
+        <strong>Temperature evolution</strong>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <select id="rangeFilter" style="min-width:auto;padding:8px 12px;font-size:0.9rem;">
+            <option value="week">Week</option>
+            <option value="month">Month</option>
+            <option value="year">Year</option>
+            <option value="all" selected>All</option>
+          </select>
+          <span id="chartHint">°C over time</span>
+        </div>
+      </div>
+      <svg id="chart" viewBox="0 0 900 260" role="img" aria-label="Temperature evolution chart"></svg>
+    </section>
+
+    <section class="card table-scroll">
+      <div id="status" class="status">Loading data...</div>
+      <table id="table" hidden>
         <thead>
           <tr>
-            <th>Date</th>
+            <th>Date UTC</th>
             <th>Location</th>
             <th>Temperature</th>
+            <th>Description</th>
           </tr>
         </thead>
-        <tbody id="tableBody"></tbody>
+        <tbody id="rows"></tbody>
       </table>
     </section>
 
-    <footer>
-      Last refreshed from JSON when this page loaded.
-    </footer>
+    <footer>Tip: the table scrolls automatically when there are more than 10 records.</footer>
   </main>
 
   <script>
     const JSON_FILE = "temperatures.json";
+    const stats = document.getElementById("stats");
+    const status = document.getElementById("status");
+    const table = document.getElementById("table");
+    const rows = document.getElementById("rows");
+    const search = document.getElementById("search");
+    const sort = document.getElementById("sort");
+    const chart = document.getElementById("chart");
+    const chartHint = document.getElementById("chartHint");
+    const rangeFilter = document.getElementById("rangeFilter");
 
-    const statsEl = document.getElementById("stats");
-    const statusEl = document.getElementById("status");
-    const tableEl = document.getElementById("dataTable");
-    const tableBodyEl = document.getElementById("tableBody");
-    const searchInput = document.getElementById("searchInput");
-    const sortSelect = document.getElementById("sortSelect");
+    let data = [];
 
-    let temperatures = [];
-
-    async function loadTemperatures() {
-      try {
-        const response = await fetch(JSON_FILE, { cache: "no-store" });
-
-        if (!response.ok) {
-          throw new Error(`Could not load ${JSON_FILE}. Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (!Array.isArray(data)) {
-          throw new Error("temperatures.json must contain a JSON array.");
-        }
-
-        temperatures = data.map(normalizeRecord).filter(Boolean);
+    fetch(JSON_FILE, { cache: "no-store" })
+      .then((res) => {
+        if (!res.ok) throw new Error(`Could not load ${JSON_FILE}`);
+        return res.json();
+      })
+      .then((json) => {
+        data = Array.isArray(json) ? json.map(cleanRecord).filter(Boolean) : [];
         render();
-      } catch (error) {
-        statusEl.innerHTML = `<span class="error">${escapeHtml(error.message)}</span>`;
-      }
-    }
+      })
+      .catch((err) => {
+        status.innerHTML = `<span class="error">${escapeHtml(err.message)}</span>`;
+      });
 
-    function normalizeRecord(record) {
-      if (!record || !record.date || !record.location || record.temperature === undefined) {
-        return null;
-      }
+    function cleanRecord(item) {
+      if (!item || !item.date || !item.location || item.temperature === undefined) return null;
 
       return {
-        date: record.date,
-        location: String(record.location),
-        temperature: Number(record.temperature)
+        date: item.date,
+        location: String(item.location),
+        temperature: Number(item.temperature),
+        unit: item.unit || "celsius",
+        description: item.description || ""
       };
     }
 
     function render() {
-      const query = searchInput.value.trim().toLowerCase();
-      const sortMode = sortSelect.value;
+      const q = search.value.trim().toLowerCase();
+      const filtered = data
+        .filter((item) => item.location.toLowerCase().includes(q))
+        .sort(sortRecords);
 
-      let visibleRows = temperatures.filter((item) =>
-        item.location.toLowerCase().includes(query)
-      );
+      const chartData = filterByRange(filtered)
+        .slice()
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-      visibleRows.sort((a, b) => {
-        switch (sortMode) {
-          case "date-asc":
-            return new Date(a.date) - new Date(b.date);
-          case "date-desc":
-            return new Date(b.date) - new Date(a.date);
-          case "temp-asc":
-            return a.temperature - b.temperature;
-          case "temp-desc":
-            return b.temperature - a.temperature;
-          case "location-asc":
-            return a.location.localeCompare(b.location);
-          default:
-            return 0;
-        }
-      });
-
-      renderStats(visibleRows);
-      renderTable(visibleRows);
+      renderStats(filtered);
+      renderChart(chartData);
+      renderTable(filtered);
     }
 
-    function renderStats(rows) {
-      const count = rows.length;
-      const average = count
-        ? rows.reduce((sum, item) => sum + item.temperature, 0) / count
-        : 0;
-      const highest = count ? Math.max(...rows.map((item) => item.temperature)) : 0;
-      const lowest = count ? Math.min(...rows.map((item) => item.temperature)) : 0;
+    function sortRecords(a, b) {
+      if (sort.value === "date-asc") return new Date(a.date) - new Date(b.date);
+      if (sort.value === "date-desc") return new Date(b.date) - new Date(a.date);
+      if (sort.value === "temp-asc") return a.temperature - b.temperature;
+      if (sort.value === "temp-desc") return b.temperature - a.temperature;
+      if (sort.value === "location-asc") return a.location.localeCompare(b.location);
+      return 0;
+    }
 
-      statsEl.innerHTML = `
-        <article class="stat-card">
-          <div class="stat-label">Records</div>
-          <div class="stat-value">${count}</div>
-        </article>
-        <article class="stat-card">
-          <div class="stat-label">Average</div>
-          <div class="stat-value">${formatTemperature(average)}</div>
-        </article>
-        <article class="stat-card">
-          <div class="stat-label">Highest</div>
-          <div class="stat-value">${formatTemperature(highest)}</div>
-        </article>
-        <article class="stat-card">
-          <div class="stat-label">Lowest</div>
-          <div class="stat-value">${formatTemperature(lowest)}</div>
+    function renderStats(items) {
+      const temps = items.map((item) => item.temperature).filter(Number.isFinite);
+      const avg = temps.length ? temps.reduce((sum, temp) => sum + temp, 0) / temps.length : null;
+      const max = temps.length ? Math.max(...temps) : null;
+      const min = temps.length ? Math.min(...temps) : null;
+
+      stats.innerHTML = `
+        ${statCard("Records", items.length)}
+        ${statCard("Average", formatTemp(avg))}
+        ${statCard("Highest", formatTemp(max))}
+        ${statCard("Lowest", formatTemp(min))}
+      `;
+    }
+
+    function statCard(label, value) {
+      return `
+        <article class="card stat">
+          <div class="label">${label}</div>
+          <div class="value">${value}</div>
         </article>
       `;
     }
 
-    function renderTable(rows) {
-      if (!rows.length) {
-        tableEl.hidden = true;
-        statusEl.hidden = false;
-        statusEl.textContent = "No temperature records found.";
+    function renderTable(items) {
+      if (!items.length) {
+        table.hidden = true;
+        status.hidden = false;
+        status.textContent = "No records found.";
         return;
       }
 
-      tableBodyEl.innerHTML = rows
-        .map((item) => `
-          <tr>
-            <td>${formatDate(item.date)}</td>
-            <td>${escapeHtml(item.location)}</td>
-            <td><span class="temp-pill">${formatTemperature(item.temperature)}</span></td>
-          </tr>
-        `)
-        .join("");
+      rows.innerHTML = items.map((item) => `
+        <tr>
+          <td>${formatUTC(item.date)}</td>
+          <td>${escapeHtml(item.location)}</td>
+          <td><span class="temp">${formatTemp(item.temperature)}</span></td>
+          <td>${escapeHtml(item.description || "—")}</td>
+        </tr>
+      `).join("");
 
-      statusEl.hidden = true;
-      tableEl.hidden = false;
+      status.hidden = true;
+      table.hidden = false;
     }
 
-    function formatDate(value) {
-      const date = new Date(value);
+    function filterByRange(items) {
+      const mode = rangeFilter.value;
 
-      if (Number.isNaN(date.getTime())) {
-        return escapeHtml(value);
+      if (mode === "all") return items;
+
+      const now = new Date();
+      const limit = new Date();
+
+      if (mode === "week") {
+        limit.setDate(now.getDate() - 7);
+      } else if (mode === "month") {
+        limit.setMonth(now.getMonth() - 1);
+      } else if (mode === "year") {
+        limit.setFullYear(now.getFullYear() - 1);
       }
 
+      return items.filter((item) => new Date(item.date) >= limit);
+    }
+
+    function renderChart(items) {
+      chart.innerHTML = "";
+      const points = items.filter((item) => Number.isFinite(item.temperature));
+
+      if (points.length < 2) {
+        chartHint.textContent = "Add at least 2 records to show a trend";
+        chart.innerHTML = `<text x="450" y="135" text-anchor="middle" fill="#64748b">Not enough data for chart</text>`;
+        return;
+      }
+
+      chartHint.textContent = `${points.length} readings`;
+
+      const width = 900;
+      const height = 260;
+      const pad = 34;
+      const minTemp = Math.min(...points.map((p) => p.temperature));
+      const maxTemp = Math.max(...points.map((p) => p.temperature));
+      const range = maxTemp - minTemp || 1;
+
+      const x = (index) => pad + (index / (points.length - 1)) * (width - pad * 2);
+      const y = (temp) => height - pad - ((temp - minTemp) / range) * (height - pad * 2);
+
+      const path = points
+        .map((point, index) => `${index === 0 ? "M" : "L"} ${x(index)} ${y(point.temperature)}`)
+        .join(" ");
+
+      chart.innerHTML = `
+        <line x1="${pad}" y1="${height - pad}" x2="${width - pad}" y2="${height - pad}" stroke="#cbd5e1" />
+        <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${height - pad}" stroke="#cbd5e1" />
+        <text x="${pad}" y="22" fill="#64748b" font-size="13">${formatTemp(maxTemp)}</text>
+        <text x="${pad}" y="${height - 8}" fill="#64748b" font-size="13">${formatTemp(minTemp)}</text>
+        <path d="${path}" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+        ${points.map((point, index) => `
+          <circle cx="${x(index)}" cy="${y(point.temperature)}" r="5" fill="#2563eb">
+            <title>${formatUTC(point.date)} — ${formatTemp(point.temperature)}</title>
+          </circle>
+        `).join("")}
+      `;
+    }
+
+    function formatTemp(value) {
+      return Number.isFinite(value) ? `${value.toFixed(1)}°C` : "—";
+    }
+
+    function formatUTC(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return escapeHtml(value);
+
       return date.toLocaleString(undefined, {
+        timeZone: "UTC",
         year: "numeric",
         month: "short",
         day: "2-digit",
         hour: "2-digit",
-        minute: "2-digit"
+        minute: "2-digit",
+        timeZoneName: "short"
       });
-    }
-
-    function formatTemperature(value) {
-      if (!Number.isFinite(value)) {
-        return "—";
-      }
-
-      return `${value.toFixed(1)}°C`;
     }
 
     function escapeHtml(value) {
@@ -394,10 +429,9 @@
         .replaceAll("'", "&#039;");
     }
 
-    searchInput.addEventListener("input", render);
-    sortSelect.addEventListener("change", render);
-
-    loadTemperatures();
+    search.addEventListener("input", render);
+    sort.addEventListener("change", render);
+    rangeFilter.addEventListener("change", render);
   </script>
 </body>
 </html>

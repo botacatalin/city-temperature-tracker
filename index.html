@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Temperature History</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #68758a;
+      --accent: #2563eb;
+      --accent-soft: #dbeafe;
+      --border: #e5eaf2;
+      --danger: #dc2626;
+      --shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #eef4ff, #f8fafc);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 32px 16px;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 28px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      letter-spacing: -0.04em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .stat-card,
+    .panel {
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .stat-card {
+      padding: 20px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    input,
+    select {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font: inherit;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .search {
+      min-width: 240px;
+      flex: 1;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 16px 18px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: #f8fafc;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .temp-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 74px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .status {
+      padding: 26px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .error {
+      color: var(--danger);
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.86rem;
+      margin-top: 22px;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 22px 12px;
+      }
+
+      .toolbar {
+        align-items: stretch;
+      }
+
+      input,
+      select {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Temperature History</h1>
+      <p class="subtitle">Live JSON data loaded from <strong>temperatures.json</strong></p>
+    </header>
+
+    <section class="stats" id="stats"></section>
+
+    <section class="panel toolbar">
+      <input
+        id="searchInput"
+        class="search"
+        type="search"
+        placeholder="Search by location..."
+        aria-label="Search by location"
+      />
+
+      <select id="sortSelect" aria-label="Sort temperature records">
+        <option value="date-desc">Newest first</option>
+        <option value="date-asc">Oldest first</option>
+        <option value="temp-desc">Highest temperature</option>
+        <option value="temp-asc">Lowest temperature</option>
+        <option value="location-asc">Location A-Z</option>
+      </select>
+    </section>
+
+    <section class="panel table-wrap">
+      <div id="status" class="status">Loading temperature data...</div>
+      <table id="dataTable" hidden>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Location</th>
+            <th>Temperature</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </section>
+
+    <footer>
+      Last refreshed from JSON when this page loaded.
+    </footer>
+  </main>
+
+  <script>
+    const JSON_FILE = "temperatures.json";
+
+    const statsEl = document.getElementById("stats");
+    const statusEl = document.getElementById("status");
+    const tableEl = document.getElementById("dataTable");
+    const tableBodyEl = document.getElementById("tableBody");
+    const searchInput = document.getElementById("searchInput");
+    const sortSelect = document.getElementById("sortSelect");
+
+    let temperatures = [];
+
+    async function loadTemperatures() {
+      try {
+        const response = await fetch(JSON_FILE, { cache: "no-store" });
+
+        if (!response.ok) {
+          throw new Error(`Could not load ${JSON_FILE}. Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!Array.isArray(data)) {
+          throw new Error("temperatures.json must contain a JSON array.");
+        }
+
+        temperatures = data.map(normalizeRecord).filter(Boolean);
+        render();
+      } catch (error) {
+        statusEl.innerHTML = `<span class="error">${escapeHtml(error.message)}</span>`;
+      }
+    }
+
+    function normalizeRecord(record) {
+      if (!record || !record.date || !record.location || record.temperature === undefined) {
+        return null;
+      }
+
+      return {
+        date: record.date,
+        location: String(record.location),
+        temperature: Number(record.temperature)
+      };
+    }
+
+    function render() {
+      const query = searchInput.value.trim().toLowerCase();
+      const sortMode = sortSelect.value;
+
+      let visibleRows = temperatures.filter((item) =>
+        item.location.toLowerCase().includes(query)
+      );
+
+      visibleRows.sort((a, b) => {
+        switch (sortMode) {
+          case "date-asc":
+            return new Date(a.date) - new Date(b.date);
+          case "date-desc":
+            return new Date(b.date) - new Date(a.date);
+          case "temp-asc":
+            return a.temperature - b.temperature;
+          case "temp-desc":
+            return b.temperature - a.temperature;
+          case "location-asc":
+            return a.location.localeCompare(b.location);
+          default:
+            return 0;
+        }
+      });
+
+      renderStats(visibleRows);
+      renderTable(visibleRows);
+    }
+
+    function renderStats(rows) {
+      const count = rows.length;
+      const average = count
+        ? rows.reduce((sum, item) => sum + item.temperature, 0) / count
+        : 0;
+      const highest = count ? Math.max(...rows.map((item) => item.temperature)) : 0;
+      const lowest = count ? Math.min(...rows.map((item) => item.temperature)) : 0;
+
+      statsEl.innerHTML = `
+        <article class="stat-card">
+          <div class="stat-label">Records</div>
+          <div class="stat-value">${count}</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-label">Average</div>
+          <div class="stat-value">${formatTemperature(average)}</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-label">Highest</div>
+          <div class="stat-value">${formatTemperature(highest)}</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-label">Lowest</div>
+          <div class="stat-value">${formatTemperature(lowest)}</div>
+        </article>
+      `;
+    }
+
+    function renderTable(rows) {
+      if (!rows.length) {
+        tableEl.hidden = true;
+        statusEl.hidden = false;
+        statusEl.textContent = "No temperature records found.";
+        return;
+      }
+
+      tableBodyEl.innerHTML = rows
+        .map((item) => `
+          <tr>
+            <td>${formatDate(item.date)}</td>
+            <td>${escapeHtml(item.location)}</td>
+            <td><span class="temp-pill">${formatTemperature(item.temperature)}</span></td>
+          </tr>
+        `)
+        .join("");
+
+      statusEl.hidden = true;
+      tableEl.hidden = false;
+    }
+
+    function formatDate(value) {
+      const date = new Date(value);
+
+      if (Number.isNaN(date.getTime())) {
+        return escapeHtml(value);
+      }
+
+      return date.toLocaleString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function formatTemperature(value) {
+      if (!Number.isFinite(value)) {
+        return "—";
+      }
+
+      return `${value.toFixed(1)}°C`;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    searchInput.addEventListener("input", render);
+    sortSelect.addEventListener("change", render);
+
+    loadTemperatures();
+  </script>
+</body>
+</html>

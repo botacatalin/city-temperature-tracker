@@ -185,7 +185,7 @@
   <main>
     <header>
       <h1>City Temperature Tracker</h1>
-      <p class="subtitle">UTC temperature history powered by <strong>OpenWeatherMap</strong> data and stored in <strong>temperatures.json</strong>.</p>
+      <p class="subtitle">UTC temperature history powered by <strong>OpenWeatherMap</strong> and loaded directly from the GitHub-hosted JSON file.</p>
     </header>
 
     <section id="stats" class="grid"></section>
@@ -236,11 +236,11 @@
       </table>
     </section>
 
-    <footer>Tip: the table scrolls automatically when there are more than 10 records.</footer>
+    <footer>Data is fetched from the raw GitHub JSON file when the page loads. The table scrolls automatically when there are many records.</footer>
   </main>
 
   <script>
-    const JSON_FILE = "temperatures.json";
+    const JSON_FILE = "https://raw.githubusercontent.com/botacatalin/city-temperature-tracker/main/temperatures.json";
     const stats = document.getElementById("stats");
     const status = document.getElementById("status");
     const table = document.getElementById("table");
@@ -255,7 +255,7 @@
 
     fetch(JSON_FILE, { cache: "no-store" })
       .then((res) => {
-        if (!res.ok) throw new Error(`Could not load ${JSON_FILE}`);
+        if (!res.ok) throw new Error("Could not load temperature data from GitHub.");
         return res.json();
       })
       .then((json) => {

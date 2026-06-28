@@ -238,5 +238,11 @@
     "location": "Cluj-Napoca",
     "temperature": 16.93,
     "unit": "celsius"
+  },
+  {
+    "date": "2026-06-28T02:58:06.000Z",
+    "location": "Cluj-Napoca",
+    "temperature": 18.12,
+    "unit": "celsius"
   }
 ]
